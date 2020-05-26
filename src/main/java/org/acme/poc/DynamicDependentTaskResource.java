@@ -14,8 +14,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.acme.poc.model.DynamicDependentTaskRequest;
 import org.drools.core.common.InternalKnowledgeRuntime;
-import org.jbpm.process.core.impl.XmlProcessDumper;
-import org.jbpm.process.core.impl.XmlProcessDumperFactory;
 import org.jbpm.process.instance.impl.ProcessInstanceImpl;
 import org.jbpm.ruleflow.core.RuleFlowProcess;
 import org.jbpm.services.api.ProcessService;
@@ -96,21 +94,13 @@ public class DynamicDependentTaskResource {
         }
 
         try {
-            XmlProcessDumper dumper = XmlProcessDumperFactory.newXmlProcessDumperFactory();
-            String newProcessXml = dumper.dumpProcess(process);
-            RuleFlowProcess newProcess = (RuleFlowProcess) dumper.readProcess(newProcessXml);
-            Double version = Double.parseDouble(process.getVersion()) + 0.1d;
-            newProcess.setId(processInstance.getProcessId() + "v" + version);
-            newProcess.setVersion(version.toString());
-
-            insertNodeInBetween(newProcess, request.getBeforeTask(), request.getAfterTask(), request.getTaskName());
-
+            // FIXME: This modifies the process definition, all process instances that
+            // belong to that instance are affected.
+            insertNodeInBetween(process, request.getBeforeTask(), request.getAfterTask(), request.getTaskName());
             processInstance.setKnowledgeRuntime(
                     (InternalKnowledgeRuntime) context.getContainer(containerId).getKieContainer().getKieSession());
-            
-            // FIXME: This is performed but not persisted.
-            processInstance.setProcess(newProcess);
-            processInstance.updateProcess(newProcess);
+
+            processInstance.updateProcess(process);
             processInstance.reconnect();
         } catch (Exception e) {
             e.printStackTrace();
