@@ -48,7 +48,7 @@ public class DynamicDependentTaskServiceTest extends AbstractKieServicesTest {
     protected void configureServices() {
         super.configureServices();
         context = new KieServerRegistryImpl();
-        this.dynamicTaskResource = new DynamicDependentTaskResource(processService, context);
+        this.dynamicTaskResource = new DynamicDependentTaskResource(processService, null, context);
     }
 
     @Test
